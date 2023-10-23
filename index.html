@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tales of Zestiria Language Conversion</title>
+    
+    <meta charset="utf-8">
+    
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <center>
+        
+    <h1>Tales of Zestiria Language Conversion</h1>
+
+    <p>Current version: 1.2</p>
+    <p>Ancient Tongue decipherment: <a href="https://eigwayne.tumblr.com/post/159131339234/an-alternate-deciphering-of-the-ancient-tongue" target="_blank">Source</a>
+    <br>
+    Ancient Script font: <a href="https://sternacht.com/2017/09/19/post-759/" target="_blank">Source</a></p>
+
+    <textarea id="inputText" rows="5" cols="40"></textarea>
+    
+    <p>
+    
+    <!-- Ancient Script -->
+    <div id="inputAncientScript" class="ancient-script" style="display: none;"></div>
+
+    </p>
+
+    <select id="originalLanguage">
+        <option value="english" selected="">English (英語)</option>
+        <option value="gw">Glenwood Language (グリーンウッド語)</option>
+        <option value="ancient">Ancient Tongue (古代語)</option>
+    </select>
+
+    <br> ↓ <br>
+
+    <select id="cipherLanguage">
+        <option value="english">English (英語)</option>
+        <option value="gw">Glenwood Language (グリーンウッド語)</option>
+        <option value="ancient" selected="">Ancient Tongue (古代語)</option>
+    </select>
+    
+    <br><br>
+
+    <button id="convertButton">Convert</button>
+
+    <br><br>
+
+    <textarea id="outputText" rows="5" cols="40" readonly=""></textarea>
+    
+    <p>
+    
+    <!-- Ancient Script -->
+    <div id="outputAncientScript" class="ancient-script" style="display: none;"></div>
+
+    </p>
+    
+    <p><a href="https://mistbow.neocities.org/">Go to Top Page</a></p>
+
+    </center>
+
+    <script>
+        document.getElementById("convertButton").addEventListener("click", function() {
+            const originalLanguage = document.getElementById("originalLanguage").value;
+            const cipherLanguage = document.getElementById("cipherLanguage").value;
+            const inputText = document.getElementById("inputText").value;
+
+            const outputText = convertText(inputText, originalLanguage, cipherLanguage);
+
+            document.getElementById("outputText").value = outputText;
+            
+            if (originalLanguage === "ancient") {
+                const inputAncientScript = inputText.toUpperCase();
+                document.getElementById("inputAncientScript").innerText = inputAncientScript;
+                document.getElementById("inputAncientScript").style.display = "block";
+            } else {
+                document.getElementById("inputAncientScript").style.display = "none";
+            }
+            
+            if (cipherLanguage === "ancient") {
+                const outputAncientScript = outputText.toUpperCase();
+                document.getElementById("outputAncientScript").innerText = outputAncientScript;
+                document.getElementById("outputAncientScript").style.display = "block";
+            } else {
+                document.getElementById("outputAncientScript").style.display = "none";
+            }
+        });
+
+        function convertText(text, originalLang, cipherLang) {
+            const originalAlphabet = getAlphabet(originalLang);
+            const cipherAlphabet = getAlphabet(cipherLang);
+
+            const translationTable = {};
+
+            for (let i = 0; i < originalAlphabet.length; i++) {
+                translationTable[originalAlphabet[i]] = cipherAlphabet[i];
+            }
+
+            const outputText = text.split('').map(char => translationTable[char] || char).join('');
+
+            return outputText;
+        }
+
+        function getAlphabet(lang) {
+            switch (lang) {
+                case "gw":
+                    return "efghizyxopqkjtuwvnmlabcdrsEFGHIZYXOPQKJTUWVNMLABCDRS";
+                case "ancient":
+                    return "adrjuhbcepqmlvifgwksotnzyxADRJUHBCEPQMLVIFGWKSOTNZYX";
+                default:
+                    return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            }
+        }
+    </script>
+</body>
+</html>

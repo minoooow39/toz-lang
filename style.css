@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Ancient Script Tales Of Zestiri';
+    src: url('AncientScriptTalesOfZestir-Rg.woff2') format('woff2'),
+        url('AncientScriptTalesOfZestir-Rg.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+.ancient-script {
+    font-family: 'Ancient Script Tales Of Zestiri';
+    font-size: 40px;
+}

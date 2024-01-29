@@ -39,27 +39,53 @@
         </table>
 
         <center>
-            <div id="ancientScriptDisplay" class="ancient-script" style="display: none;"></div>
-        </center>
-
-        <center>
             <button id="ejButton">E→J (英→日)</button>
             <br>
-            <button id="jeButton">E←J (英←日)</button>
-            <br><br>
-            <label for="japaneseTextArea">Japanese (日本語)</label>
+            <center>
+                <div id="ancientScriptDisplay" class="ancient-script" style="display: none;"></div>
+            </center>
             <br>
-            <textarea id="japaneseTextArea" rows="5" cols="40"></textarea>
+            <button id="jeButton">E←J (英←日)</button>
+            <br>
+
+            <table>
+                <tr>
+                    <td>
+                        <center>
+                        <label for="japaneseTextArea">日本語</label>
+                        <br>
+                        <textarea id="japaneseTextArea" rows="5" cols="40"></textarea>
+                        </center>
+                    </td>
+                    <td>
+                        <center>
+                        <label for="japaneseAncientTextArea">古代語</label>
+                        <br>
+                        <textarea id="japaneseAncientTextArea" rows="5" cols="40" readonly=""></textarea>
+                        </center>
+                    </td>
+                    <td>
+                        <center>
+                        <label for="japaneseGWTextArea">グリーンウッド語</label>
+                        <br>
+                        <textarea id="japaneseGWTextArea" rows="5" cols="40" readonly=""></textarea>
+                        </center>
+                    </td>
+                </tr>
+            </table>
         </center>
 
-        <br><br>※このツールは無料版の<a href="https://mymemory.translated.net/doc/usagelimits.php">MyMemory</a>のAPIを使用しているため、1日あたり5000文字しか日英・英日の翻訳できません。申し訳ございません。<br>
+        <br><br>
+
         ※日英・英日の翻訳は不正確である可能性があります
 
         <script>
             document.getElementById("jeButton").addEventListener("click", function(){
                 const japaneseText = document.getElementById("japaneseTextArea").value;
                 
-                let apiUrl = `https://api.mymemory.translated.net/get?q=${japaneseText}&langpair=ja-JP|en-US`;
+                let apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=ja&tl=en&q=${japaneseText}`
+                
+                // let apiUrl = `https://api.mymemory.translated.net/get?q=${japaneseText}&langpair=ja-JP|en-US`;
 
                 if (!japaneseText)
                 {
@@ -69,20 +95,34 @@
                 console.log(apiUrl);
 
                 fetch(apiUrl).then(res => res.json()).then(data => {
-                    document.getElementById("englishTextArea").value = data.responseData.translatedText;
-                    document.getElementById("gwTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("gw"));
-                    document.getElementById("ancientTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("ancient"));
+                    document.getElementById("englishTextArea").value = data[0];
+                    document.getElementById("gwTextArea").value = applyCipher(data[0], getAlphabet("english"), getAlphabet("gw"));
+                    document.getElementById("ancientTextArea").value = applyCipher(data[0], getAlphabet("english"), getAlphabet("ancient"));
 
                     const ancientScriptDisplay = document.getElementById("ancientScriptDisplay");
                     ancientScriptDisplay.innerText = document.getElementById("ancientTextArea").value.toUpperCase();
                     ancientScriptDisplay.style.display = "block";
+                })
+
+                apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=ja&q=${document.getElementById("ancientTextArea").value}`
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("japaneseAncientTextArea").value = data[0];
+                })
+
+                apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=ja&q=${document.getElementById("gwTextArea").value}`
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("japaneseGWTextArea").value = data[0];
                 })
             })
 
             document.getElementById("ejButton").addEventListener("click", function(){
                 const englishText = document.getElementById("englishTextArea").value;
 
-                let apiUrl = `https://api.mymemory.translated.net/get?q=${englishText}&langpair=en-US|ja-JP`;
+                let apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=ja&q=${englishText}`
+
+                // let apiUrl = `https://api.mymemory.translated.net/get?q=${englishText}&langpair=en-US|ja-JP`;
 
                 if (!englishText)
                 {
@@ -90,7 +130,19 @@
                 }
 
                 fetch(apiUrl).then(res => res.json()).then(data => {
-                    document.getElementById("japaneseTextArea").value = data.responseData.translatedText;
+                    document.getElementById("japaneseTextArea").value = data[0];
+                })
+
+                apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=ja&q=${document.getElementById("ancientTextArea").value}`
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("japaneseAncientTextArea").value = data[0];
+                })
+
+                apiUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=ja&q=${document.getElementById("gwTextArea").value}`
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("japaneseGWTextArea").value = data[0];
                 })
             })
 

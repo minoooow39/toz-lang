@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tales of Zestiria Language Conversion (TOZ言語変換ツール)</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <center>
+        <h1>Tales of Zestiria Language Conversion (TOZ言語変換ツール)</h1>
+        <p>Current version (現在ver): 2.0</p>
+        <p>Ancient Tongue decipherment (古代語解読): <a href="https://eigwayne.tumblr.com/post/159131339234/an-alternate-deciphering-of-the-ancient-tongue" target="_blank">LINK</a>
+        <br> Ancient Script font (古代文字フォント): <a href="https://sternacht.com/2017/09/19/post-759/" target="_blank">LINK</a></p>
+
+        <div>
+            <label for="englishTextArea">English (英語)</label>
+            <br>
+            <textarea id="englishTextArea" rows="5" cols="40" oninput="updateCiphers('englishTextArea', 'english')"></textarea>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="gwTextArea">Glenwood Language (グリーンウッド語)</label>
+            <br>
+            <textarea id="gwTextArea" rows="5" cols="40" oninput="updateCiphers('gwTextArea', 'gw')"></textarea>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="ancientTextArea">Ancient Tongue (古代語)</label>
+            <br>
+            <textarea id="ancientTextArea" rows="5" cols="40" oninput="updateCiphers('ancientTextArea', 'ancient')"></textarea>
+        </div>
+
+        <br>
+
+        <div id="ancientScriptDisplay" class="ancient-script" style="display: none;"></div>
+
+        <script>
+            function updateCiphers(textAreaId, lang) {
+                const inputText = document.getElementById(textAreaId).value;
+
+                if (lang === 'english') {
+                    document.getElementById("gwTextArea").value = applyCipher(inputText, getAlphabet("english"), getAlphabet("gw"));
+                    document.getElementById("ancientTextArea").value = applyCipher(inputText, getAlphabet("english"), getAlphabet("ancient"));
+                } else if (lang === 'gw') {
+                    document.getElementById("ancientTextArea").value = applyCipher(inputText, getAlphabet("gw"), getAlphabet("ancient"));
+                    document.getElementById("englishTextArea").value = applyCipher(inputText, getAlphabet("gw"), getAlphabet("english"));
+                } else if (lang === 'ancient') {
+                    document.getElementById("gwTextArea").value = applyCipher(inputText, getAlphabet("ancient"), getAlphabet("gw"));
+                    document.getElementById("englishTextArea").value = applyCipher(inputText, getAlphabet("ancient"), getAlphabet("english"));
+                }
+
+                const ancientScriptDisplay = document.getElementById("ancientScriptDisplay");
+                ancientScriptDisplay.innerText = document.getElementById("ancientTextArea").value.toUpperCase();
+                ancientScriptDisplay.style.display = "block";
+            }
+
+            function applyCipher(text, originalAlphabet, cipherAlphabet) {
+                const translationTable = {};
+
+                for (let i = 0; i < originalAlphabet.length; i++) {
+                    translationTable[originalAlphabet[i]] = cipherAlphabet[i];
+                }
+
+                return text.split('').map(char => translationTable[char] || char).join('');
+            }
+
+            function getAlphabet(lang) {
+                switch (lang) {
+                    case "gw":
+                        return "efghizyxopqkjtuwvnmlabcdrsEFGHIZYXOPQKJTUWVNMLABCDRS";
+                    case "ancient":
+                        return "adrjuhbcepqmlvifgwksotnzyxADRJUHBCEPQMLVIFGWKSOTNZYX";
+                    default:
+                        return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                }
+            }
+        </script>
+    </center>
+</body>
+</html>

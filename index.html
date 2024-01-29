@@ -8,37 +8,93 @@
 <body>
     <center>
         <h1>Tales of Zestiria Language Conversion (TOZ言語変換ツール)</h1>
-        <p>Current version (現在ver): 2.0</p>
+        <p>Current version (現在ver): 2.1</p>
         <p>Ancient Tongue decipherment (古代語解読): <a href="https://eigwayne.tumblr.com/post/159131339234/an-alternate-deciphering-of-the-ancient-tongue" target="_blank">LINK</a>
         <br> Ancient Script font (古代文字フォント): <a href="https://sternacht.com/2017/09/19/post-759/" target="_blank">LINK</a></p>
+         <br>
+        
+         <table>
+            <tr>
+                <td>
+                    <center>
+                        <label for="englishTextArea">English (英語)</label>
+                        <br>
+                        <textarea id="englishTextArea" rows="5" cols="40" oninput="updateCiphers('englishTextArea', 'english')"></textarea>
+                    </center>
+                </td>
+                <td>
+                    <center>
+                        <label for="ancientTextArea">Ancient Tongue (古代語)</label>
+                        <br>
+                        <textarea id="ancientTextArea" rows="5" cols="40" oninput="updateCiphers('ancientTextArea', 'ancient')"></textarea>
+                    </center>
+                </td>
+                <td>
+                    <center>
+                        <label for="gwTextArea">Glenwood Language (グリーンウッド語)</label>
+                        <br>
+                        <textarea id="gwTextArea" rows="5" cols="40" oninput="updateCiphers('gwTextArea', 'gw')"></textarea>
+                    </center>
+                </td>
+            </tr>
+        </table>
 
-        <div>
-            <label for="englishTextArea">English (英語)</label>
+        <center>
+            <div id="ancientScriptDisplay" class="ancient-script" style="display: none;"></div>
+        </center>
+
+        <center>
+            <button id="ejButton">E→J (英→日)</button>
             <br>
-            <textarea id="englishTextArea" rows="5" cols="40" oninput="updateCiphers('englishTextArea', 'english')"></textarea>
-        </div>
-
-        <br>
-
-        <div>
-            <label for="gwTextArea">Glenwood Language (グリーンウッド語)</label>
+            <button id="jeButton">E←J (英←日)</button>
+            <br><br>
+            <label for="japaneseTextArea">Japanese (日本語)</label>
             <br>
-            <textarea id="gwTextArea" rows="5" cols="40" oninput="updateCiphers('gwTextArea', 'gw')"></textarea>
-        </div>
+            <textarea id="japaneseTextArea" rows="5" cols="40"></textarea>
+        </center>
 
-        <br>
-
-        <div>
-            <label for="ancientTextArea">Ancient Tongue (古代語)</label>
-            <br>
-            <textarea id="ancientTextArea" rows="5" cols="40" oninput="updateCiphers('ancientTextArea', 'ancient')"></textarea>
-        </div>
-
-        <br>
-
-        <div id="ancientScriptDisplay" class="ancient-script" style="display: none;"></div>
+        <br><br>※このツールは無料版の<a href="https://mymemory.translated.net/doc/usagelimits.php">MyMemory</a>のAPIを使用しているため、1日あたり5000文字しか翻訳できません。申し訳ございません。<br>
+        ※日英・英日の翻訳は不正確である可能性があります
 
         <script>
+            document.getElementById("jeButton").addEventListener("click", function(){
+                const japaneseText = document.getElementById("japaneseTextArea").value;
+                
+                let apiUrl = `https://api.mymemory.translated.net/get?q=${japaneseText}&langpair=ja-JP|en-US`;
+
+                if (!japaneseText)
+                {
+                    return;
+                }
+
+                console.log(apiUrl);
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("englishTextArea").value = data.responseData.translatedText;
+                    document.getElementById("gwTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("gw"));
+                    document.getElementById("ancientTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("ancient"));
+
+                    const ancientScriptDisplay = document.getElementById("ancientScriptDisplay");
+                    ancientScriptDisplay.innerText = document.getElementById("ancientTextArea").value.toUpperCase();
+                    ancientScriptDisplay.style.display = "block";
+                })
+            })
+
+            document.getElementById("ejButton").addEventListener("click", function(){
+                const englishText = document.getElementById("englishTextArea").value;
+
+                let apiUrl = `https://api.mymemory.translated.net/get?q=${englishText}&langpair=en-US|ja-JP`;
+
+                if (!englishText)
+                {
+                    return;
+                }
+
+                fetch(apiUrl).then(res => res.json()).then(data => {
+                    document.getElementById("japaneseTextArea").value = data.responseData.translatedText;
+                })
+            })
+
             function updateCiphers(textAreaId, lang) {
                 const inputText = document.getElementById(textAreaId).value;
 

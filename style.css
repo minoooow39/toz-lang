@@ -18,6 +18,14 @@ textarea {
     height: 100px;
 }
 
+table {
+    border-spacing: 10px;
+}
+
+td {
+    margin-right: 10px;
+}
+
 .ancient-script {
     font-family: 'Ancient Script Tales Of Zestiri';
     font-size: 40px;

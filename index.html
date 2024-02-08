@@ -66,8 +66,6 @@
                     return;
                 }
 
-                console.log(apiUrl);
-
                 fetch(apiUrl).then(res => res.json()).then(data => {
                     document.getElementById("englishTextArea").value = data.responseData.translatedText;
                     document.getElementById("gwTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("gw"));

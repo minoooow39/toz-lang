@@ -3,12 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <title>Tales of Zestiria Language Conversion (TOZ言語変換ツール)</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        @font-face {
+            font-family: 'AncientScript';
+            src: url('AncientScriptTalesOfZestir-Rg.woff2') format('woff2'),
+                 url('AncientScriptTalesOfZestir-Rg.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        select {
+            padding: 8px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            font-family: monospace;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        table {
+            margin: 20px auto;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .ancient-script {
+            font-family: 'AncientScript', monospace;
+            font-size: 24px;
+            padding: 20px;
+            margin: 20px auto;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            max-width: 800px;
+        }
+
+        .error {
+            color: red;
+            margin: 10px;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <center>
         <h1>Tales of Zestiria Language Conversion (TOZ言語変換ツール)</h1>
-        <p>Current version (現在ver): 2.1</p>
+        <p>Current version (現在ver): 2.2</p>
         <p>Ancient Tongue decipherment (古代語解読): <a href="https://eigwayne.tumblr.com/post/159131339234/an-alternate-deciphering-of-the-ancient-tongue" target="_blank">LINK</a>
         <br> Ancient Script font (古代文字フォント): <a href="https://sternacht.com/2017/09/19/post-759/" target="_blank">LINK</a></p>
         
@@ -43,54 +120,146 @@
         </center>
 
         <center>
+            <label for="translationService">Translation Service (翻訳サービス):</label>
+            <select id="translationService">
+                <option value="mymemory" selected>MyMemory</option>
+                <option value="libretranslate">LibreTranslate (自己ホスト)</option>
+            </select>
+            <br>
+            <small>
+		・翻訳サービスは<a href="https://mymemory.translated.net/doc/usagelimits.php" target=_blank>MyMemory</a>か<a href="https://translate.minot.dev" target=_blank>自己ホストのLibreTranslate</a>対応<br>
+                ・品質重視ならMyMemory。ただし1日5000文字制限あり<br>
+                ・制限超えたらLibreTranslate使ってください<br>
+                ・日英／英日は精度低めな場合あり
+            </small>
+            <br><br>
             <button id="ejButton">E→J (英→日)</button>
             <br>
             <button id="jeButton">E←J (英←日)</button>
-            <br><br>
+            <br>
+            <div id="translationStatus"></div>
+            <br>
             <label for="japaneseTextArea">Japanese (日本語)</label>
             <br>
             <textarea id="japaneseTextArea" rows="5" cols="40"></textarea>
         </center>
 
-        <br><br>※このツールは無料版の<a href="https://mymemory.translated.net/doc/usagelimits.php">MyMemory</a>のAPIを使用しているため、1日あたり5000文字しか日英・英日の翻訳できません。申し訳ございません。<br>
-        ※日英・英日の翻訳は不正確である可能性があります
-
         <script>
-            document.getElementById("jeButton").addEventListener("click", function(){
+            const LIBRETRANSLATE_API = "https://translate.minot.dev";
+
+            async function translateWithLibreTranslate(text, sourceLang, targetLang) {
+                const response = await fetch(`${LIBRETRANSLATE_API}/translate`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        q: text,
+                        source: sourceLang,
+                        target: targetLang,
+                        format: "text"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Translation failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.translatedText;
+            }
+
+            async function translateWithMyMemory(text, sourceLang, targetLang) {
+                const langPair = `${sourceLang}|${targetLang}`;
+                const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`;
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Translation failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.responseData.translatedText;
+            }
+
+            async function translateText(text, sourceLang, targetLang) {
+                const service = document.getElementById("translationService").value;
+                
+                if (service === "libretranslate") {
+                    return await translateWithLibreTranslate(text, sourceLang, targetLang);
+                } else {
+                    // MyMemory uses different language codes
+                    const myMemorySource = sourceLang === "ja" ? "ja-JP" : "en-US";
+                    const myMemoryTarget = targetLang === "ja" ? "ja-JP" : "en-US";
+                    return await translateWithMyMemory(text, myMemorySource, myMemoryTarget);
+                }
+            }
+
+            function showStatus(message, isError = false) {
+                const statusDiv = document.getElementById("translationStatus");
+                statusDiv.textContent = message;
+                statusDiv.className = isError ? "error" : "loading";
+                if (!isError && message) {
+                    setTimeout(() => {
+                        statusDiv.textContent = "";
+                    }, 2000);
+                }
+            }
+
+            document.getElementById("jeButton").addEventListener("click", async function(){
                 const japaneseText = document.getElementById("japaneseTextArea").value;
                 
-                let apiUrl = `https://api.mymemory.translated.net/get?q=${japaneseText}&langpair=ja-JP|en-US`;
-
-                if (!japaneseText)
-                {
+                if (!japaneseText) {
                     return;
                 }
 
-                fetch(apiUrl).then(res => res.json()).then(data => {
-                    document.getElementById("englishTextArea").value = data.responseData.translatedText;
-                    document.getElementById("gwTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("gw"));
-                    document.getElementById("ancientTextArea").value = applyCipher(data.responseData.translatedText, getAlphabet("english"), getAlphabet("ancient"));
+                const button = this;
+                button.disabled = true;
+                showStatus("翻訳中...");
+
+                try {
+                    const translatedText = await translateText(japaneseText, "ja", "en");
+                    
+                    document.getElementById("englishTextArea").value = translatedText;
+                    document.getElementById("gwTextArea").value = applyCipher(translatedText, getAlphabet("english"), getAlphabet("gw"));
+                    document.getElementById("ancientTextArea").value = applyCipher(translatedText, getAlphabet("english"), getAlphabet("ancient"));
 
                     const ancientScriptDisplay = document.getElementById("ancientScriptDisplay");
                     ancientScriptDisplay.innerText = document.getElementById("ancientTextArea").value.toUpperCase();
                     ancientScriptDisplay.style.display = "block";
-                })
-            })
+                    
+                    showStatus("翻訳完了！");
+                } catch (error) {
+                    console.error("Translation error:", error);
+                    showStatus("翻訳エラーが発生しました", true);
+                } finally {
+                    button.disabled = false;
+                }
+            });
 
-            document.getElementById("ejButton").addEventListener("click", function(){
+            document.getElementById("ejButton").addEventListener("click", async function(){
                 const englishText = document.getElementById("englishTextArea").value;
 
-                let apiUrl = `https://api.mymemory.translated.net/get?q=${englishText}&langpair=en-US|ja-JP`;
-
-                if (!englishText)
-                {
+                if (!englishText) {
                     return;
                 }
 
-                fetch(apiUrl).then(res => res.json()).then(data => {
-                    document.getElementById("japaneseTextArea").value = data.responseData.translatedText;
-                })
-            })
+                const button = this;
+                button.disabled = true;
+                showStatus("翻訳中...");
+
+                try {
+                    const translatedText = await translateText(englishText, "en", "ja");
+                    document.getElementById("japaneseTextArea").value = translatedText;
+                    showStatus("翻訳完了！");
+                } catch (error) {
+                    console.error("Translation error:", error);
+                    showStatus("翻訳エラーが発生しました", true);
+                } finally {
+                    button.disabled = false;
+                }
+            });
 
             function updateCiphers(textAreaId, lang) {
                 const inputText = document.getElementById(textAreaId).value;
@@ -133,5 +302,6 @@
             }
         </script>
     </center>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"608912e63e324257b3008ca9e0ae214a","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
